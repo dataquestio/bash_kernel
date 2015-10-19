@@ -50,11 +50,7 @@ class BashKernel(Kernel):
         # reset it from the subprocess. Since kernelapp ignores SIGINT except in
         # message handlers, we need to temporarily reset the SIGINT handler here
         # so that bash and its children are interruptible.
-        sig = signal.signal(signal.SIGINT, signal.SIG_DFL)
-        try:
-            self.bashwrapper = replwrap.bash()
-        finally:
-            signal.signal(signal.SIGINT, sig)
+        self.bashwrapper = replwrap.bash()
 
         # Register Bash function to write image data to temporary file
         self.bashwrapper.run_command(image_setup_cmd)
@@ -68,11 +64,6 @@ class BashKernel(Kernel):
         interrupted = False
         try:
             output = self.bashwrapper.run_command(code.rstrip(), timeout=None)
-        except KeyboardInterrupt:
-            self.bashwrapper.child.sendintr()
-            interrupted = True
-            self.bashwrapper._expect_prompt()
-            output = self.bashwrapper.child.before
         except EOF:
             output = self.bashwrapper.child.before + 'Restarting Bash'
             self._start_bash()
